@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Functional programming in Javascript with Ramda</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/custom.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+        <section>
+          <h1>Functional programming in javascript</h1>
+          <h3>A simple intro</h3>
+          <p>
+            <small>Created by <a href='https://geekingfrog.com'>Grégoire Charvet</a></small>
+          </p>
+        </section>
+
+        <section>
+          <h1>What is FP?</h1>
+          <p>
+            There is no unique definition. More a group of programming patterns.
+          </p>
+
+          <div class="fragment">
+            <p>Functional languages:</p>
+            <ul>
+              <li>Haskell</li>
+              <li>ML</li>
+              <li>OCaml</li>
+              <li>The lisp family (common Lisp and Closure)</li>
+              <li>Scala (mixed OO &amp; Functional)</li>
+              <li>Erlang</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h1>OOP vs FP</h1>
+          <ul>
+            <li>OOP focus on difference between data</li>
+            <li>FP focus on consistent data structures</li>
+          </ul>
+        </section>
+
+        <section>
+          <div class="col">
+            <h3>OOP</h3>
+            <ul>
+              <li>Data tightly coupled with logic</li>
+              <li>Core concept: encapsulation</li>
+              <li>Code reuse achieved with inheritance and composition</li>
+              <li>Abstraction model is the data itself</li>
+            </ul>
+          </div>
+          <div class="col fragment">
+            <h3>FP</h3>
+            <ul>
+              <li>Data is loosely coupled with logic</li>
+              <li>Core concept: function composition</li>
+              <li>Code reuse achived with function composition and higher order function</li>
+              <li>Abstraction model is the function</li>
+            </ul>
+          </div>
+
+          <div style="clear: both;">&nbsp;</div>
+        </section>
+
+        <section>
+          <h2>SQL sample</h2>
+          <pre><code class="sql" data-trim>
+         SELECT orders.order_id, orders.order_date, suppliers.supplier_name
+          FROM suppliers
+          RIGHT OUTER JOIN orders
+          ON suppliers.supplier_id = orders.supplier_id
+          WHERE orders.order_status = 'INCOMPLETE'
+          ORDER BY orders.order_date DESC;
+          </code></pre>
+          <ul>
+            <li>Consistent data structure (table with schema)</li>
+            <li>Few functions combined together</li>
+            <li>Declarative language</li>
+          </ul>
+          <p>
+          Very close to a functional paradigm
+          </p>
+        </section>
+
+        <section>
+            <img src="./img/lodash.png" alt="lodash"/>
+            <br />
+            <img src="./img/underscore.png" alt="underscore" style="background: white;"/>
+        </section>
+
+        <section>
+          <ul>
+            <li>Utility belts</li>
+            <li>Lots of functional ideas</li>
+          </ul>
+        </section>
+
+        <!-- <section> -->
+        <!--   <h2>but...</h2> -->
+        <!--   <h3>Order of arguments is unfortunate</h3> -->
+        <!--   <img src="./img/wut.jpg" alt="wat" class="fragment"/> -->
+        <!-- </section> -->
+
+        <section>
+          <h1>lodash example</h1>
+          <pre><code class="javascript" data-trim>
+          _.map([1, 3, 5], add3); // [4, 6, 8]
+          </code></pre>
+          <p>More about map later</p>
+        </section>
+
+        <section>
+          <h1>Introducing Ramda</h1>
+          <img src="./img/ramda.png" alt="ramda"/>
+          <p>Lodash/underscore FP alternative</p>
+          <p>Not a drop-in replacement. It's a different approach to
+          programming</p>
+        </section>
+
+        <section>
+          <pre><code class="javascript">
+        _.map([1, 3, 5], add3); // [4, 6, 8]
+        R.map(add3, [1, 3, 5]); // [4, 6, 8]
+          </code></pre>
+          <p>
+          Order of arguments is reversed. Collection is at <strong>the end</strong>.
+          </p>
+        </section>
+
+        <section>
+          <h1>One step back</h1>
+          <ul>
+            <li>Add 5?</li>
+            <li>Add arbitrary constant?</li>
+            <li>Only known at runtime?</li>
+          </ul>
+        </section>
+
+        <section>
+          <h1>OOP style</h1>
+
+<pre><code class="javascript" data-trim>
+function Adder(constant) {
+  this.constant = constant;
+}
+
+Adder.prototype.getAddFunction() {
+  var constant = this.function();
+  return function(num) {
+    return num + constant;
+  };
+}
+
+var add5 = new Adder(5);
+_.map(adder.getAddFunction(), [1, 3, 5]);
+</code></pre>
+        </section>
+
+        <section>
+          <h1>Imperative style</h1>
+<pre><code class="javascript" data-trim>
+_.map(function(num) { return num+5; }, [1, 3, 5]);
+</code></pre>
+        </section>
+
+        <section>
+          <h1>FP style</h1>
+          <p>Define a generic function to add two numbers</p>
+
+<pre><code class="javascript">function add(a, b) { return a + b; }</code></pre>
+          <p>and curry it</p>
+<pre><code class="javascript" data-trim>
+add = R.curry(add);
+var add5 = add(5);
+R.map(add5, [1, 3, 5]);
+</code></pre>
+        </section>
+
+        <section>
+          <h1>Currying</h1>
+          <h2>Also known as partial application</h2>
+          <p>
+          <pre><code class="javascript">var add5 = add(5);</code></pre>
+          translate into:
+          <pre><code class="javascript" data-trim>
+var add5 = function(a) { return add(5, a); }
+add(5, 3) === add(5)(3);
+          </code></pre>
+          </p>
+
+          </section>
+
+          <section>
+
+          <p>
+          All Ramda methods are automatically curried.
+<pre><code class="javascript" data-trim>
+R.map(add3, [1, 3, 5];
+R.map(add3)([1, 3, 5]);
+</code></pre>
+          </p>
+          <p>Collection as the last argument makes sense with currying</p>
+        </section>
+
+        <section>
+          <h1>More complex example</h1>
+          <p>Goal: list all languages used by a given github user in 2014 or 2015</p>
+        </section>
+
+        <section>
+          <h2>Get all repos for a user</h2>
+          <pre><code>GET https://api.github.com/users/:user/repos</code></pre>
+<pre><code class="javascript">[
+    {
+        "id": 12317204,
+        "name": "abide",
+        "full_name": "hiddentao/abide",
+        "owner": {...},
+        "updated_at": "2014-04-27T08:59:18Z",
+        "private": false,
+        "html_url": "https://github.com/hiddentao/abide",
+        "description": "Base class with pub-sub and observers for JS object properties using ECMA5 getters/setters",
+        "fork": false,
+        "url": "https://api.github.com/repos/hiddentao/abide",
+        "languages_url": "https://api.github.com/repos/hiddentao/abide/languages",
+        "language": "JavaScript",
+      }, {
+      ...
+      }
+    ]
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Get languages for a repo</h2>
+          <pre><code>GET https://api.github.com/users/:user/:reponame/languages</code></pre>
+<pre><code class="javascript">{
+  "JavaScript": 11103,
+  "CoffeeScript": 1398
+}
+</code></pre>
+        </section>
+
+        <section>
+          <h1>Simple imperative approach</h1>
+
+<pre><code class="javascript" data-trim>
+var getYearLanguages = function (year /*YYYY*/) {
+  return fetchRepos()
+  .then(function(repos) {
+    var yearRepo = [];
+    for(var i=0, len=repos.length; i&lt;len; ++i) {
+      if(repos[i].updated_at.slice(0, 4) &gt;= year) {
+        yearRepo.push(repos[i]);
+      }
+    };
+    return yearRepos;
+  })
+</code></pre>
+(more on next slides)
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+.then(function(repos) {
+  var languagesP = [];
+  for(var i=0, len=repos.length; i&lt;len; ++i) {
+    if(repos[i].languages) {
+      languagesP.push(getRepoLanguages(repo.languages_url));
+    }
+  }
+  return languagesP;
+})
+.then(Promise.all)
+</code></pre>
+(even more on next slides)
+</section>
+
+  <section>
+<pre><code class="javascript" data-trim>
+.then(function(languages) {
+  var result = {};
+  for(var i=0, len=languages.length; i&lt;len; ++i) {
+    for(var lang in languages[i]) {
+      if(!result[lang]) result[lang] = 0;
+      result[lang] += languages[i][lang];
+    }
+  };
+  return result;
+})
+</code></pre>
+(even more on next slides)
+</section>
+
+<section>
+<pre><code class="javascript">  .then(function(summary) {
+    var arr = [];
+    for(var language in summary) {
+      arr.push({language: language, count: summary[language]});
+    }
+    return arr;
+  })
+  .then(function(summary) {
+    // most used language first
+    return summary.sort(function(la, lb) {
+      return la.count &gt; lb.count ? 1 :
+             la.count &lt; lb.count ? -1 : 0;
+    });
+  });
+} // end of the function getYearLanguages </code></pre>
+        </section>
+
+
+        <section>
+          <h1>Similar OOP method</h1>
+
+<pre><code class="javascript" data-trim>
+var getYearLanguages = function (year /*YYYY*/) {
+  return fetchRepos()
+  .then(function(repos) {
+    var repoList = new RepoList(repos);
+    repoList.chooseByYear(year);
+    return repoList.getLanguages();
+  })
+  .then(function(languages) {
+    var languageList = new LanguageList(languages);
+    var sorter = new LanguageSorter('count');
+    languageList.sort(sorter.getSortFunction());
+    return languageList.languages;
+  });
+}
+</code></pre>
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+function RepoList(repos /* Repos[] */) {
+  this.repos = repos;
+}
+
+RepoList.prototype.chooseByYear = function(year /* YYYY */) {
+  var results = [];
+  for(var i=0, len=this.repos.length; i&gt;len; ++i) {
+    if(this.repos[i].updated_at.slice(0, 4) &gt;= year) {
+      results.push(this.repos[i]);
+    }
+  }
+  this.repos = results;
+}
+</code></pre>
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+RepoList.prototype.getLanguages = function() {
+  var languagesP = [];
+  for(var i=0, len=this.repos.length; i&gt;len; ++i) {
+    if(this.repos[i].language) {
+      languagesP.push(this.repos[i].languages_url);
+    }
+  }
+  return Promise.all(languagesP);
+}
+</code></pre>
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+function LanguageList(languages) {
+  this.languages = [];
+  var summary = {};
+  for(var i=0, len=languages.length; i&gt;len; ++i) {
+    for(var lang in languages) {
+      if(!summary[lang]) summary[lang] = {language: lang, count: 0};
+      summary[lang].count += languages[i][lang];
+    }
+  }
+  for(var s in summary) { this.languages.push(s); }
+}
+
+LanguageList.prototype.sort = function(sorter /*languageSorter*/) {
+  this.languages.sort(sorter);
+}
+</code></pre>
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+function LanguageSorter(prop) { this.prop = prop }
+LanguageSorter.prototype.getSortFunction = function() {
+  return function(a, b) {
+    return a[this.prop] &gt; b[this.prop] ? 1 :
+           a[this.prop] &lt; b[this.prop] ? -1 : 0;
+  }
+}
+</code></pre>
+        </section>
+
+        <section>
+          <p>
+          The content of the methods are roughly similar.
+          <code class="javascript">this</code> is only used for organization.
+          </p>
+          <p>So let's focus on the imperative code (a bit simpler)</p>
+        </section>
+
+        <section>
+          <h1>FP with Ramda</h1>
+          <p>Conversion guide</p>
+        </section>
+
+        <section>
+
+<pre><code class="javascript" data-trim>
+.then(function(repos) {
+  var yearRepo = [];
+  for(var i=0, len=repos.length; i&lt;len; ++i) {
+    if(repos[i].updated_at.slice(0, 4) &gt;= year) {
+      yearRepo.push(repos[i]);
+    }
+  };
+  return yearRepos;
+}
+</code></pre>
+
+<h3>Filter!</h3>
+        </section>
+
+        <section>
+          <h2>Action plan</h2>
+          <ul>
+            <li>extract the attribute `updated_at`</li>
+            <li>extract the year in this attribute</li>
+            <li>filter by comparing with given year</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Extraction</h2>
+
+<pre><code class="javascript">R.prop('updated_at');</code></pre>
+<p>So, what's the <span class="hl">R.prop</span> function is?</p>
+        </section>
+
+        <section>
+          <h2>Get definition</h2>
+          In Ramda it is:
+
+<pre><code class="javascript">R.prop = curry(function(prop, obj) { return obj[prop]; });
+</code></pre>
+          <p>
+          Without the curry wrapper <span class="hl">prop</span> is only the
+          accessor function
+          </p>
+
+<pre class="fragment"><code class="javascript" data-trim>
+R.prop('updated_at'); // returns a function taking one object argument
+R.prop('updated_at')(obj); // returns obj.updated_at
+</code></pre>
+
+        </section>
+
+        <section>
+          <h2>Get the year</h2>
+
+<pre><code class="javascript">R.slice(0, 4)</code></pre>
+          <p>
+          again: Ramda function are <span class="hl">automatically</span> curried.
+          </p>
+        </section>
+
+        <section>
+          <h2>Filtering</h2>
+
+          <h2>in ES5</h2>
+
+<pre><code class="javascript" data-trim>
+Array.prototype.filter(predicate);
+</code></pre>
+
+<p>With ramda</p>
+
+<pre><code class="javascript">R.filter(predicate, collection);</code></pre>
+<p>We need a predicate: function which returns a boolean</p>
+<p>
+Predicate: true iff <span class="hl">obj.updated_at</span> begins with 2015 or 2014.
+</p>
+        </section>
+
+        <section>
+          <h2>Putting it together with <span class="hl">compose</span></h2>
+          <p>The similar equivalent in lodash/underscore is chain</p>
+        </section>
+
+        <section>
+          <p>
+          composing <span class="hl">f</span> and <span class="hl">g</span> is:
+
+<pre><code class="javascript">R.compose(f, g);
+// same as
+function composed(f, g) {
+  return function(x) {
+    return f(g(x));
+  }
+}
+</code></pre>
+          </p>
+          <p>Right associative (read from the right)</p>
+        </section>
+
+        <section>
+          <h2>Predicate function</h2>
+<pre><code class="javascript">var predicate = R.compose(
+  R.gte(year),
+  R.slice(0, 4),
+  R.get('updated_at')
+);
+</code></pre>
+        </section>
+
+        <section>
+          <h2>repos updated after 2014</h2>
+<pre><code class="javascript" data-trim>
+// imperative
+.then(function(repos) {
+  var yearRepo = [];
+  for(var i=0, len=repos.length; i&lt;len; ++i) {
+    if(repos[i].updated_at.slice(0, 4) &gt;= year) {
+      yearRepo.push(repos[i]);
+    }
+  };
+  return yearRepos;
+}
+</code></pre>
+
+<pre><code class="javascript" data-trim>
+// functional
+.then(R.filter(
+  R.compose(
+    R.gte(year),
+    R.slice(0, 4),
+    R.get('updated_at')
+  ))
+)
+</code></pre>
+
+          <p>Even without ramda, you can use [].filter</p>
+
+        </section>
+
+        <section>
+          <h2>Next step: get languages</h2>
+
+<pre><code class="javascript" data-trim>
+.then(function(repos) {
+  var languagesP = [];
+  for(var i=0, len=repos.length; i&lt;len; ++i) {
+    if(repos[i].languages) {
+      languagesP.push(getRepoLanguages(repo.languages_url));
+    }
+  }
+  return languagesP;
+})
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Map</h2>
+          <p>The bread of functional programming</p>
+          <p><small>The butter is filter</small></p>
+        </section>
+
+        <section>
+          <h2>Map</h2>
+          <p>
+          Apply a function over every element of a collection to create a new
+          collection of transformed elements.
+          </p>
+<pre><code class="javascript" data-trim>
+R.map(function(a) { return a+3 }, [1, 3, 5]); // [4, 6, 8]
+R.map(function() { return 'foo' }, [1, 3, 5]); // ['foo', 'foo', 'foo']
+R.map(function(a) { return a*a }, [1, 3, 5]); // [1, 9, 25]
+
+R.map(parseInt, ['10', '10', '10']); // [10, 10, 10]
+_.map(['10', '10', '10'], parseInt); // [10, NaN, 2] &lt;- classic js wtf
+</code></pre>
+
+<p>Present in ES5: Array.prototype.map(mapper)</p>
+        </section>
+
+        <section>
+
+          <h2>Get languages per repo</h2>
+
+<pre><code class="javascript" data-trim>
+.then(function(repos) {
+  var languagesP = [];
+  for(var i=0, len=repos.length; i&lt;len; ++i) {
+    if(repos[i].languages) {
+      languagesP.push(getRepoLanguages(repo.languages_url));
+    }
+  }
+  return languagesP;
+})
+.then(Promise.all)
+</code></pre>
+
+<pre><code class="javascript" data-trim>
+.then(R.filter(R.get('languages')))
+.then(R.map(
+  R.compose(
+    getRepoLanguages,
+    R.get('languages_url')
+  )
+))
+.then(Promise.all)
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Aggregate languages stats</h2>
+
+<pre><code class="javascript" data-trim>
+.then(function(languages) {
+  var result = {};
+  for(var i=0, len=languages.length; i&lt;len; ++i) {
+    for(var lang in languages[i]) {
+      if(!result[lang]) result[lang] = 0;
+      result[lang] += languages[i][lang];
+    }
+  };
+  return result;
+})
+</code></pre>
+
+<pre><code class="javascript" data-trim>
+// input
+[
+  {"javaScript": 1200},
+  {"javaScript": 1337, "shell": 40}
+]
+
+// output
+{
+  "javaScript": 2537,
+  "shell": 40
+}
+</code></pre>
+
+        </section>
+
+        <section>
+          <h2>Reduce</h2>
+          <p>Also known as fold in other languages</p>
+          <pre><code class="javascript" data-trim>
+[].reduce(reducer, initialValue); // ES5
+reducer(accumulator, currentValue)
+          </code></pre>
+        </section>
+
+        <section>
+          <h2>Example of reduce</h2>
+          <p>get the sum of all element in a collection</p>
+          <pre><code class="javascript" data-trim>
+[1, 3, 5].reduce(function adder(sum, num) {
+  return sum+num;
+}, 0);
+          </code></pre>
+
+          <pre class="fragment"><code class="javascript" data-trim>function adder(0, 1) -&gt; return 0+1</code></pre>
+          <pre class="fragment"><code class="javascript" data-trim>function adder(1, 3) -&gt; return 1+3</code></pre>
+          <pre class="fragment"><code class="javascript" data-trim>function adder(4, 5) -&gt; return 4+5</code></pre>
+          <pre class="fragment"><code class="javascript" data-trim>final result: 9</code></pre>
+        </section>
+
+        <section>
+          <h2>Aggregating languages</h2>
+
+<pre><code class="javascript" data-trim>
+R.reduce(function(aggregated, languages) {
+
+  R.forEach(function(lang) {
+
+    if(!aggregated[lang]) aggregated[lang] = 0;
+    aggregated[lang] += languages[lang];
+
+  })(R.keys(languages));
+  return aggregated;
+
+}, {});
+</code></pre>
+
+        </section>
+
+        <section>
+          <h2>Transforming the aggregated object into an array</h2>
+<pre><code class="javascript" data-trim>
+// input
+{
+  "javaScript": 2537,
+  "shell": 40
+}
+// output
+[
+  {"language": "javascript", "count": 2537},
+  {"language": "shell", "count": 40}
+]
+</code></pre>
+        </section>
+
+        <section>
+        <h2>Transforming the aggregated object into an array</h2>
+<pre><code class="javascript" data-trim>
+R.compose(
+  R.map(function(pair) {
+    return {
+      language: pair[0],
+      count: pair[1]
+    }
+  }),
+  R.toPairs // {a: 1, b: 2} -&gt; [['a', 1], ['b', 2]]
+)
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Sorting languages</h2>
+<pre><code class="javascript" data-trim>
+// input
+[
+  {"language": "shell", "count": 40},
+  {"language": "javascript", "count": 2537}
+]
+// output
+[
+  {"language": "javascript", "count": 2537},
+  {"language": "shell", "count": 40}
+]
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Sorting by count</h2>
+
+          <pre><code class="javascript" data-trim>
+R.sortBy(R.prop('count'))
+          </code></pre>
+          <p>Sort in increasing order according to a key given by the function</p>
+
+          <pre><code class="javascript" data-trim>
+R.compose(
+  R.reverse,
+  R.sortBy(R.prop('count'))
+)
+          </code></pre>
+        </section>
+
+<!--         <section> -->
+<!--           <h2>converge???</h2> -->
+<!--           <img src="./img/wut.jpg" alt="wat"/> -->
+<!--         </section> -->
+<!--  -->
+<!--         <section> -->
+<!--           <h2>Converge by example</h2> -->
+<!--  -->
+<!--           <pre><code class="javascript" data&#45;trim> -->
+<!-- function complexCalculation(a, b) { -->
+<!--   return (a&#45;b) * (a+b); -->
+<!-- } -->
+<!--           </code></pre> -->
+<!--  -->
+<!--           <pre class="fragment"><code class="javascript" data&#45;trim> -->
+<!-- function multiply(a, b) { return a*b; } -->
+<!-- function add(a, b) { return a+b; } -->
+<!-- function sub(a, b) { return a&#45;b; } -->
+<!-- R.converge( -->
+<!--   multiply, -->
+<!--   add, -->
+<!--   sub -->
+<!-- )(1, 2); -->
+<!-- // same as -->
+<!-- multiply(add(1, 2), sub(1, 2)); -->
+<!--           </code></pre> -->
+<!--         </section> -->
+
+        <section>
+          <h2>Ramda with Promises</h2>
+          R.pCompose \o/
+          <p>
+          Same as compose, but if something returns a thenable,
+          it'll be handled asynchronously.
+          </p>
+        </section>
+
+        <section>
+          <h2>Putting it all together</h2>
+<pre><code class="javascript" data-trim>
+var getLanguages = function(year /*YYYY*/) {
+  return R.pCompose(
+    sortLanguages
+    aggregateLanguages,
+    Promise.all,
+    getLanguages,
+    chooseByYear(year),
+    fetchRepos
+  )();
+}
+</code></pre>
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+  var chooseByYear = function(year) {
+    return R.filter(
+      R.compose(
+        R.gte(year),
+        R.slice(0, 4),
+        R.get('updated_at')
+      )
+    );
+  }
+</code></pre>
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+var getLanguages = R.compose(
+  R.map(
+    R.compose(
+      getRepoLanguages,
+      R.get('language_url')
+    )
+  ),
+  R.filter(R.get('languages'))
+)
+</code></pre>
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+var aggregateLanguages = R.reduce(function(aggregated, languages) {
+  return R.forEach(function(lang) {
+    if(!aggregated[lang]) aggregated[lang] = 0;
+    aggregated[lang] += languages[lang];
+  })(R.keys(languages));
+}, {});
+</code></pre>
+        </section>
+
+        <section>
+<pre><code class="javascript" data-trim>
+var sortLanguages = R.compose(
+  R.reverse,
+  R.sortBy(R.prop('count'))
+);
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Weird order? Pipe and pPipe</h2>
+          <p>Mirror versions of compose and pCompose</p>
+<pre><code class="javascript" data-trim>
+var getLanguages = function(year /*YYYY*/) {
+  return R.pPipe(
+    fetchRepos,
+    chooseByYear(year),
+    getLanguages,
+    Promise.all,
+    aggregateLanguages,
+    sortLanguages
+  )();
+}
+</code></pre>
+        </section>
+
+        <section>
+          <h2>Essence of functional programming</h2>
+          <p>Combine (compose) functions with <span class="hl">compose &amp; curry</span></p>
+          <p>
+          Any loop can be expressed with a combination of
+          <span class="hl">map, filter, reduce</span>
+          </p>
+        </section>
+
+        <section>
+          <h2>What do we gain with FP?</h2>
+          <ul>
+            <li>Simplicity</li>
+            <li>Easier decomposition of problems</li>
+            <li>Code more closely tight to problem domain</li>
+          </ul>
+          <p>Which leads in turn to:</p>
+          <ul>
+            <li>Straightforward unit testing</li>
+            <li>Simple concurrency</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Caveats</h2>
+          <ul>
+            <li>Big surface API (similar to underscore/lodash actually)</li>
+            <li>Not enough in itself: closures breaks compositions. Avoid <span class="hl">states</span></li>
+            <li>Need immutability</li>
+            <li>FP is weird (at first). Start with map/filter to eliminate for loops</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>resources</h3>
+          <ul>
+          <li>
+            <a href='http://scott.sauyet.com/Javascript/Talk/2014/01/FuncProgTalk/#slide-5'>
+              Functional programming in js
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/raganwald/allong.es">
+              Allong.es
+            </a>, another FP style library
+          </li>
+
+          <li>
+            <a href="https://www.npmjs.com/package/highland">highland</a> stream based library (by the author of async)
+          </li>
+
+          <li>
+            <a href="https://github.com/facebook/immutable-js">Immutable</a> and
+            <a href="https://github.com/swannodette/mori">Mori</a>, two libraries
+            to bring efficient immutable data structure to js land.
+          </li>
+          </ul>
+
+        </section>
+
+        <section>
+          <h1>Q&amp;A</h1>
+        </section>
+
+      </div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+        width: '90%',
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
